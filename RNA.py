@@ -3,7 +3,7 @@ import random
 import argparse
 
 
-def email():  # Number of jumps put in terminal.
+def email():  # Email function
     return "email"
 
 
@@ -30,7 +30,7 @@ if ARGS.email:
     printMe = email()
     print(printMe)
 
-if ARGS.blockscan:  # If trials exist, assign it, else set default trials (1000).
+if ARGS.blockscan:  # If blockscan is requested, do that. Else...dont.
     print("block")
 else:
     print("Not blocked")
