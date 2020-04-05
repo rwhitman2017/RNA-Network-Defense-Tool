@@ -4,9 +4,16 @@ import socket
 from requests import get
 from contextlib import closing
 from scapy.all import *
+import smtplib
 
-def email():  # Email function
-    # TBD
+def email(port_being_scanned):  # Email function
+    server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+    server.login("RNAsomething@gmail.maybe", "Somegoodpasswordgoeshere")
+    server.sendmail(
+        "source@gmail.com", 
+        "destination@xyz.com", 
+        "You are being port scanned on port: ")
+    server.quit()
     return 0
 
 def scan_filter(pkt): # Detects if a port scan is in progress
