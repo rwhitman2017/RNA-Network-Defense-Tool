@@ -20,7 +20,6 @@ def email(port_being_scanned):  # Email function
     server.login(username, password)  
     server.sendmail(fromaddr, toaddrs, msg)  
     server.quit()
-
     server = smtplib.SMTP_SSL('smtp-mail.outlook.com', 587)
     server.login('rnanetworkdefense@outlook.com', "7h3r3'5 n0 p01n7 1n t4k1ng 7h15 p455w0rd fr0m m3... bu7 0k!")
     server.sendmail(
