@@ -1,3 +1,5 @@
+# https://www.shellvoide.com/python/intercept-and-sniff-live-traffic-data-in-a-network-in-python/
+# Maybe some good info in here.
 import random
 import argparse
 import socket
