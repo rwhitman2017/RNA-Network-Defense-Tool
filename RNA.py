@@ -7,11 +7,25 @@ from scapy.all import *
 import smtplib
 
 def email(port_being_scanned):  # Email function
-    server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-    server.login("RNAsomething@gmail.maybe", "Somegoodpasswordgoeshere")
+    fromaddr = 'rnanetworkdefense@outlook.com'  
+    toaddrs  = 'meyeco2438@emailhost99.com'  
+    msg = 'Spam email Test'  
+
+    username = 'rnanetworkdefense@outlook.com'  
+    password = "7h3r3'5 n0 p01n7 1n t4k1ng 7h15 p455w0rd fr0m m3... bu7 0k!"
+
+    server = smtplib.SMTP('smtp-mail.outlook.com', 587)  
+    server.ehlo()
+    server.starttls()
+    server.login(username, password)  
+    server.sendmail(fromaddr, toaddrs, msg)  
+    server.quit()
+
+    server = smtplib.SMTP_SSL('smtp-mail.outlook.com', 587)
+    server.login('rnanetworkdefense@outlook.com', "7h3r3'5 n0 p01n7 1n t4k1ng 7h15 p455w0rd fr0m m3... bu7 0k!")
     server.sendmail(
-        "source@gmail.com", 
-        "destination@xyz.com", 
+        "rnanetworkdefense@outlook.com", 
+        "destination@google.com", 
         "You are being port scanned on port: ")
     server.quit()
     return 0
