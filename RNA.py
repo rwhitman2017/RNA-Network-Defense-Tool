@@ -7,28 +7,25 @@ from requests import get
 from contextlib import closing
 from scapy.all import *
 import smtplib
+from email.mime.text import MIMEText
 
 def email(port_being_scanned):  # Email function
-    fromaddr = 'rnanetworkdefense@outlook.com'  
-    toaddrs  = 'meyeco2438@emailhost99.com'  
-    msg = 'Spam email Test'  
-
-    username = 'rnanetworkdefense@outlook.com'  
+    fromaddr = "rnanetworkdefense@outlook.com"
     password = "7h3r3'5 n0 p01n7 1n t4k1ng 7h15 p455w0rd fr0m m3... bu7 0k!"
-
-    server = smtplib.SMTP('smtp-mail.outlook.com', 587)  
-    server.ehlo()
-    server.starttls()
-    server.login(username, password)  
-    server.sendmail(fromaddr, toaddrs, msg)  
-    server.quit()
-    server = smtplib.SMTP_SSL('smtp-mail.outlook.com', 587)
-    server.login('rnanetworkdefense@outlook.com', "7h3r3'5 n0 p01n7 1n t4k1ng 7h15 p455w0rd fr0m m3... bu7 0k!")
-    server.sendmail(
-        "rnanetworkdefense@outlook.com", 
-        "destination@google.com", 
-        "You are being port scanned on port: ")
-    server.quit()
+    toaddrs  = "anthony@adatechri.com"
+    text_msg = "New scan detected on port %s" + str(port_being_scanned)
+    
+    msg = MIMEText(text_msg)
+    msg['Subject'] = "RNA Network Defense Tool Notification"
+    msg['From'] = "RNA"
+    msg['To'] = toaddrs
+    
+    s = smtplib.SMTP('smtp-mail.outlook.com', 587)
+    s.starttls()
+    s.login(fromaddr, password)
+    s.sendmail(fromaddr, toaddrs, msg.as_string())
+    s.quit()
+    
     return 0
 
 def scan_filter(pkt): # Detects if a port scan is in progress
@@ -113,7 +110,7 @@ if ARGS.blockscan:  # If blockscan is requested, do that. Else...dont.
     
     """TODO:
     Need to figure out if we are being port scanned..
-    Basic steps we need to do - 
+    Basic steps we need to do -
     First, see if packet is originating from our box, to do that
     make sure its an ip packet... if it is and ip is source, return false
     if it returns true it means that it needs to be filtered. We can act
