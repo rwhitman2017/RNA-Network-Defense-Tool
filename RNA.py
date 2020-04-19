@@ -1,6 +1,21 @@
 # https://www.shellvoide.com/python/intercept-and-sniff-live-traffic-data-in-a-network-in-python/
 # Maybe some good info in here.
-# https://pypi.org/project/django-block-ip/
+""" 
+DIFFERENT NMAP TECHNIQUES:
+Most Common: Check if syn flag has been set -> TCP SYN SCAN
+Diff types of port scans and how they're dealt with in snort.
+# look for stealth port scans/sweeps
+alert tcp any any -> any any (msg:"SYN FIN Scan"; flags: SF;sid:9000000;)
+alert tcp any any -> any any (msg:"FIN Scan"; flags: F;sid:9000001;)
+alert tcp any any -> any any (msg:"NULL Scan"; flags: 0;sid:9000002;)
+alert tcp any any -> any any (msg:"XMAS Scan"; flags: FPU;sid:9000003;)
+alert tcp any any -> any any (msg:"Full XMAS Scan"; flags: SRAFPU;sid:9000004;)
+alert tcp any any -> any any (msg:"URG Scan"; flags: U;sid:9000005;)
+alert tcp any any -> any any (msg:"URG FIN Scan"; flags: FU;sid:9000006;)
+alert tcp any any -> any any (msg:"PUSH FIN Scan"; flags: FP;sid:9000007;)
+alert tcp any any -> any any (msg:"URG PUSH Scan"; flags: PU;sid:9000008;)
+alert tcp any any -> any any (flags: A; ack: 0; msg:"NMAP TCP ping!";sid:9000009;) 
+"""
 import random
 import argparse
 from socket import *
