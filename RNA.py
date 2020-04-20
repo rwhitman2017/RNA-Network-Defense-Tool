@@ -211,8 +211,8 @@ def scan_filter(pkt):
         else:
             knownICMP_IPs.update( {source_ip_address : 1} )
         
-        # If one IP address has sent 50 ICMP packets, we should probably display
-        # tell it to the user
+        # If one IP address has sent 50 ICMP packets, we should probably
+        # display it to the user
         if knownICMP_IPs[source_ip_address] == 50:
             out_text = "+50 ICMP requests originating from the IP address: " + source_ip_address
             print(out_text)
