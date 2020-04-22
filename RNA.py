@@ -45,7 +45,7 @@ def email(output):
     s.quit()
     
     return 0
-    
+
 def is_private_address(ip):
     f = unpack('!I',inet_pton(AF_INET,ip))[0]
     private = (
@@ -71,7 +71,7 @@ def syn(pkt):
         return True
     else:
         return False
-        
+
 # Packet has no flags
 def null(pkt):
     if not pkt[TCP].flags:
@@ -132,7 +132,7 @@ def scan_filter(pkt):
     source_ip_address = pkt[IP].src
     
     if public_ip == "":
-        public_ip = get("https://api.ipify.org").text
+        public_ip = get("https://checkip.amazonaws.com").text.strip()
     
     # If the IP address of the packet is from the local machine, there's no need to go further
     if source_ip_address == localIPAddr or source_ip_address == public_ip:
@@ -228,28 +228,45 @@ def scan_filter(pkt):
         return True
     else:
         return False
-    
+
+open_port_results = "Port scan results for "
+
 def check_socket(host, port):
+    # Prepare the port results to send via email if option is set
+    global open_port_results
     # Initialize socket
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
         # If port is open, socket connect function returns 0
         if sock.connect_ex((host, port)) == 0:
-            print("Port " + str(port) + " is open")
+            port_result_text = "Port " + str(port) + " (" + socket.getservbyport(port) + ") is open"
+            print(port_result_text)
+            port_result_text += "\n"
+            open_port_results += port_result_text
+    
     return None
-            
+
 def list_open_ports():
     # Get public IP address
-    ip = get("https://api.ipify.org").text
-    # Go through all ports and check if it's open
-    for port in range(1, 65536):
-        check_socket(ip, port)
-    return None
+    ip = get("https://checkip.amazonaws.com").text.strip()
+    print("Scanning ports on: " + ip)
     
+    # Append the IP to the email
+    global open_port_results
+    open_port_results += (ip + ":\n\n")
+    
+    # Go through all ports and check if it's open
+    for port in range(0, 65536):
+        check_socket(ip, port)
+    
+    if email_enabled:
+        email(open_port_results)
+    
+    return None
 
 if __name__ == "__main__":
     # Command line arguments
     PARSER = argparse.ArgumentParser()
-
+    
     PARSER.add_argument(
         "--view",
         "-v",
@@ -263,7 +280,7 @@ if __name__ == "__main__":
         help="Pass to enable email notifications",
         action="store_true"
     )
-
+    
     PARSER.add_argument(
         "--listOpenPorts",
         "-l",
@@ -277,7 +294,7 @@ if __name__ == "__main__":
         help="Pass to display all traffic that might be malicious",
         action="store_true"
     )
-
+    
     ARGS = PARSER.parse_args()
     
     # Append the user's DNS servers to the exception list
@@ -292,7 +309,7 @@ if __name__ == "__main__":
     
     if ARGS.listOpenPorts:
         list_open_ports()
-        
+    
     if ARGS.all:
         all_enabled = True
     
