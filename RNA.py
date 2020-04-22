@@ -223,7 +223,7 @@ def scan_filter(pkt):
             print(out_text)
             if email_enabled:
                 email(out_text)
-            knownICMP_IPs.clear()
+            del knownICMP_IPs[source_ip_address]
         
         return True
     else:
