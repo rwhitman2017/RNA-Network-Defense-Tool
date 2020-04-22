@@ -8,16 +8,21 @@ import smtplib
 from email.mime.text import MIMEText
 from struct import unpack
 import threading
+import dns.resolver
 
-popular_dns_servers = [
-    "208.67.222.222",
+dns_server_exceptions = [
+    "208.67.222.222",  # OpenDNS
     "208.67.220.220",
-    "1.1.1.1",
+    "1.1.1.1",  # Cloudflare
     "1.0.0.1",
-    "8.8.8.8",
+    "8.8.8.8",  # Google
     "8.8.4.4",
-    "8.26.56.26",
-    "8.20.247.20"
+    "8.26.56.26",  # Comodo
+    "8.20.247.20",
+    "9.9.9.9",  # Quad9
+    "149.112.112.112",
+    "64.6.64.6",  # Verisign
+    "64.6.65.6"
 ]
 
 def email(output):
@@ -174,7 +179,7 @@ def scan_filter(pkt):
     elif pkt.haslayer(UDP):
         # Because UDP is used constantly with DNS servers, there will be many false positives,
         # so if the packet's IP address matches that of a popular DNS server, ignore the packet
-        if source_ip_address in popular_dns_servers:
+        if source_ip_address in dns_server_exceptions:
             return False
         
         # Remainder of logic is the same as TCP
@@ -274,6 +279,13 @@ if __name__ == "__main__":
     )
 
     ARGS = PARSER.parse_args()
+    
+    # Append the user's DNS servers to the exception list
+    dns_resolver = dns.resolver.Resolver()
+    user_dns_servers = dns_resolver.nameservers
+    for dns_server in user_dns_servers:
+        if dns_server not in dns_server_exceptions:
+            dns_server_exceptions.append(dns_server)
     
     if ARGS.email:
         email_enabled = True
