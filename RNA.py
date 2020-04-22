@@ -8,7 +8,7 @@ import smtplib
 from email.mime.text import MIMEText
 from struct import unpack
 import threading
-import dns.resolver
+import os
 
 dns_server_exceptions = [
     "208.67.222.222",  # OpenDNS
@@ -24,6 +24,57 @@ dns_server_exceptions = [
     "64.6.64.6",  # Verisign
     "64.6.65.6"
 ]
+
+def windows_dns_servers():
+    # Run ipconfig
+    cmd_output = subprocess.check_output(["ipconfig", "-all"]).decode("utf-8")
+    # Split ipconfig output by a newline
+    ipconfig_all_list = cmd_output.split("\n")
+    
+    # Make an empty list to store DNS servers
+    dns_ips = []
+    # Go through all the lines of the output
+    for i in range(0, len(ipconfig_all_list)):
+        # If the text "DNS Servers" is found, extract everything after the colon
+        if "DNS Servers" in ipconfig_all_list[i]:
+            first_ip = ipconfig_all_list[i].split(":")[1].strip()
+            # Append the IP to the list
+            dns_ips.append(first_ip)
+            k = i + 1
+            # Determine if there are multiple DNS servers by detecting the
+            # lack of a colon; if there are, then append the list with those
+            while k < len(ipconfig_all_list) and ":" not in ipconfig_all_list[k]:
+                ip = ipconfig_all_list[k].strip()
+                dns_ips.append(ip)
+                k += 1
+            break
+    
+    return dns_ips
+
+def unix_dns_servers():
+    # Make an empty list to store DNS servers
+    dns_ips = []
+    # Open the DNS resolver file
+    with open("/etc/resolv.conf") as fp:
+        for cnt, line in enumerate(fp):
+            columns = line.split()
+            # Determine the text after "nameserver"
+            if columns[0] == "nameserver":
+                ip = columns[1:][0]
+                # Append the server to the list
+                dns_ips.append(ip)
+
+    return dns_ips
+    
+def user_dns_servers():
+    # Platform is Windows
+    if os.name == "nt":
+        return windows_dns_servers()
+    # Platform is UNIX-based
+    elif os.name == "posix":
+        return unix_dns_servers()
+    # Platform is unknown
+    return None
 
 def email(output):
     # Setup email authentication data
@@ -106,6 +157,7 @@ def ack(pkt):
 knownTCP_IPs = {}
 knownUDP_IPs = {}
 knownICMP_IPs = {}
+notified_ips = []
 
 all_enabled = False
 email_enabled = False
@@ -123,7 +175,7 @@ def scan_filter(pkt):
     if not pkt.haslayer(IP):
         return False
     
-    global knownTCP_IPs, knownUDP_IPs, knownICMP_IPs, email_enabled, public_ip, all_enabled
+    global knownTCP_IPs, knownUDP_IPs, knownICMP_IPs, email_enabled, public_ip,all_enabled
     # "localhost", 127.0.0.1; can sometimes be private address
     localIPAddr = socket.gethostbyname(socket.gethostname())
     
@@ -149,19 +201,16 @@ def scan_filter(pkt):
             # Detect if the packet has typical flags that indicate an nmap scan
             if syn(pkt) or null(pkt) or fin(pkt) or xmas_tree(pkt) or ack(pkt):
                 # If the IP address hasn't been seen before, initialize a key/value pair
-                # with the key as the IP address and the value as an empty list
-                if source_ip_address not in knownTCP_IPs:
-                    knownTCP_IPs.update( {source_ip_address : []} )
-                
-                # Get the "value" (list of ports the IP address has tried to scan)
-                scanned_ports = knownTCP_IPs[source_ip_address]
+                # with the key as the IP address and the value as an empty list;
+                # get the "value" if it already does
+                scanned_ports = knownTCP_IPs.get(source_ip_address, [])
                 
                 # If the port hasn't been seen before, append it to the list
                 if pkt[TCP].dport not in scanned_ports:
                     scanned_ports.append(pkt[TCP].dport)
                 
                 # Update the key/value pair with the new list of ports that the IP address has tried to scan
-                knownTCP_IPs.update( {source_ip_address : scanned_ports} )
+                knownTCP_IPs[source_ip_address] = scanned_ports
                 
                 # If -a is passed, show every TCP packet that has dangerous-looking flags
                 if all_enabled:
@@ -182,16 +231,13 @@ def scan_filter(pkt):
         if source_ip_address in dns_server_exceptions:
             return False
         
-        # Remainder of logic is the same as TCP
-        if source_ip_address not in knownUDP_IPs:
-            knownTCP_IPs.update( {source_ip_address : []} )
-            
-        scanned_ports = knownTCP_IPs[source_ip_address]
+        # Remainder of logic is the same as TCP (202)
+        scanned_ports = knownUDP_IPs.get(source_ip_address, [])
         
         if pkt[UDP].dport not in scanned_ports:
             scanned_ports.append(pkt[UDP].dport)
-            
-        knownUDP_IPs.update( {source_ip_address : scanned_ports} )
+        
+        knownUDP_IPs[source_ip_address] = scanned_ports
         
         if all_enabled:
             out_text = "Possible UDP attack from source IP address: " + source_ip_address + " on ports " + str(scanned_ports) + "\n"
@@ -219,10 +265,13 @@ def scan_filter(pkt):
         # If one IP address has sent 50 ICMP packets, we should probably
         # display it to the user
         if knownICMP_IPs[source_ip_address] == 50:
-            out_text = "+50 ICMP requests originating from the IP address: " + source_ip_address
-            print(out_text)
-            if email_enabled:
-                email(out_text)
+            print("+50 ICMP requests originating from the IP address: " + source_ip_address)
+            # Ensure that we have not emailed the user about this IP before
+            if email_enabled and source_ip_address not in notified_ips:
+                email("Possible DOS attack (at least 50 ICMP requests) from: " + source_ip_address)
+                # After we send the email, add the IP address in question
+                # to the list so we don't spam the user with emails re. the same IP
+                notified_ips.append(source_ip_address)
             del knownICMP_IPs[source_ip_address]
         
         return True
@@ -298,9 +347,7 @@ if __name__ == "__main__":
     ARGS = PARSER.parse_args()
     
     # Append the user's DNS servers to the exception list
-    dns_resolver = dns.resolver.Resolver()
-    user_dns_servers = dns_resolver.nameservers
-    for dns_server in user_dns_servers:
+    for dns_server in user_dns_servers():
         if dns_server not in dns_server_exceptions:
             dns_server_exceptions.append(dns_server)
     
