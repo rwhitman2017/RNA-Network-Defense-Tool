@@ -1,6 +1,6 @@
 # RNA Network Defense Tool
 
-The RNA Network Defense Tool is a tool designed to run on the router. It is capable of detecting different port scan variants such as TCP SYN scans, FIN scans, UDP scans, including ICMP flooding. Different options exist allowing you to receive email notifications.
+The RNA Network Defense Tool is a tool designed to run on the router. It is capable of detecting different port scan variants such as TCP SYN scans, FIN scans, UDP scans, and additionally it can detect ICMP flooding. Different options exist allowing you to receive email notifications realtime when these potential attacks take place.
 
 ## Getting Started
 
