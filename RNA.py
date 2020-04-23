@@ -84,9 +84,9 @@ def email(output):
     
     # Set the subject, from, and to fields of the email
     msg = MIMEText(output)
-    msg['Subject'] = "RNA Network Defense Tool Notification"
-    msg['From'] = "RNA"
-    msg['To'] = toaddrs
+    msg["Subject"] = "RNA Network Defense Tool Notification"
+    msg["From"] = "RNA"
+    msg["To"] = toaddrs
     
     # Open a connection to the SMTP server and login with the credentials to send the email
     s = smtplib.SMTP('smtp-mail.outlook.com', 587)
@@ -98,7 +98,7 @@ def email(output):
     return 0
 
 def is_private_address(ip):
-    f = unpack('!I',inet_pton(AF_INET,ip))[0]
+    f = unpack("!I", inet_pton(AF_INET,ip))[0]
     private = (
         # 127.0.0.0
         [2130706432, 4278190080],
@@ -175,7 +175,7 @@ def scan_filter(pkt):
     if not pkt.haslayer(IP):
         return False
     
-    global knownTCP_IPs, knownUDP_IPs, knownICMP_IPs, email_enabled, public_ip,all_enabled
+    global knownTCP_IPs, knownUDP_IPs, knownICMP_IPs, email_enabled, public_ip, all_enabled
     # "localhost", 127.0.0.1; can sometimes be private address
     localIPAddr = socket.gethostbyname(socket.gethostname())
     
@@ -202,7 +202,7 @@ def scan_filter(pkt):
             if syn(pkt) or null(pkt) or fin(pkt) or xmas_tree(pkt) or ack(pkt):
                 # If the IP address hasn't been seen before, initialize a key/value pair
                 # with the key as the IP address and the value as an empty list;
-                # get the "value" if it already does
+                # get the "value" if it already exists
                 scanned_ports = knownTCP_IPs.get(source_ip_address, [])
                 
                 # If the port hasn't been seen before, append it to the list
