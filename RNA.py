@@ -175,7 +175,7 @@ def scan_filter(pkt):
     if not pkt.haslayer(IP):
         return False
     
-    global knownTCP_IPs, knownUDP_IPs, knownICMP_IPs, email_enabled, public_ip, all_enabled
+    global public_ip
     # "localhost", 127.0.0.1; can sometimes be private address
     localIPAddr = socket.gethostbyname(socket.gethostname())
     
