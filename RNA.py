@@ -78,9 +78,9 @@ def user_dns_servers():
 
 def email(output):
     # Setup email authentication data
-    fromaddr = "rnanetworkdefense@outlook.com"
-    password = "7h3r3'5 n0 p01n7 1n t4k1ng 7h15 p455w0rd fr0m m3... bu7 0k!"
-    toaddrs  = "anthony@adatechri.com"
+    fromaddr = "YourEmail@Host.com"
+    password = "Enter In Your Password Here"
+    toaddrs  = fromaddr
     
     # Set the subject, from, and to fields of the email
     msg = MIMEText(output)
@@ -89,7 +89,9 @@ def email(output):
     msg["To"] = toaddrs
     
     # Open a connection to the SMTP server and login with the credentials to send the email
-    s = smtplib.SMTP('smtp-mail.outlook.com', 587)
+    #s = smtplib.SMTP('smtp-mail.outlook.com', 587)
+    #s = smtplib.SMTP('smtp.gmail.com', 587)
+    #s = smtplib.SMTP('stmpserver.mail.com', 587)  <- Replace with your email
     s.starttls()
     s.login(fromaddr, password)
     s.sendmail(fromaddr, toaddrs, msg.as_string())
