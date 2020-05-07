@@ -23,10 +23,10 @@ In terminal, navigate to the directory of RNA.py and run using Python 2.
 # In order to enable email functionality, you must perform the following steps.
 1. Open the RNA.py file in a text editor.
 2. Find the following lines of code:
-def email(output):
+`def email(output):
     fromaddr = "YourEmail@Host.com"
     password = "Enter In Your Password Here"
-    toaddrs  = fromaddr
+    toaddrs  = fromaddr`
 3. Within this code, enter in your email address and your password where appropriate.
 4. Locate the following line of code:
 `#s = smtplib.SMTP('stmpserver.mail.com', 587)  <- Replace with your email`
